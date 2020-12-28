@@ -28,7 +28,8 @@
     "@aws-cdk/core": "1.79.0",
     "aws-sdk": "^2.814.0",
     "purify-ts": "^0.16.1",
-    "source-map-support": "^0.5.16"
+    "source-map-support": "^0.5.16",
+    "uuid": "^8.3.2"
   },
   "prettier": {
     "printWidth": 100
