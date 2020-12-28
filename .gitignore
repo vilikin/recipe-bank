@@ -8,3 +8,6 @@ node_modules
 cdk.out
 
 build
+
+auth.json
+auth-reset-password.json

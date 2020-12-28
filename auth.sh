@@ -1,0 +1,1 @@
+aws cognito-idp admin-initiate-auth --cli-input-json file://auth.json
