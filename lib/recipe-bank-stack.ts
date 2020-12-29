@@ -5,7 +5,7 @@ import * as lambda from "@aws-cdk/aws-lambda-nodejs";
 import * as apigateway from "@aws-cdk/aws-apigateway";
 import { AuthorizationType } from "@aws-cdk/aws-apigateway";
 import * as cognito from "@aws-cdk/aws-cognito";
-import { CognitoApiGatewayAuthorizer } from "./CognitoApiGatewayAuthorizer";
+import { CognitoApiGatewayAuthorizer } from "./utils/CognitoApiGatewayAuthorizer";
 
 export class RecipeBankStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
