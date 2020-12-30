@@ -15,3 +15,9 @@ export const RecipeCodec = Codec.interface({
 });
 
 export type Recipe = GetType<typeof RecipeCodec>;
+
+export const GetPreSignedUploadUrlPayloadCodec = Codec.interface({
+  contentType: string,
+});
+
+export type GetPreSignedUploadUrlPayload = GetType<typeof GetPreSignedUploadUrlPayloadCodec>;

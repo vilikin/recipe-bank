@@ -5,7 +5,9 @@ import * as lambda from "@aws-cdk/aws-lambda-nodejs";
 import * as apigateway from "@aws-cdk/aws-apigateway";
 import { AuthorizationType } from "@aws-cdk/aws-apigateway";
 import * as cognito from "@aws-cdk/aws-cognito";
+import * as s3 from "@aws-cdk/aws-s3";
 import { CognitoApiGatewayAuthorizer } from "./utils/CognitoApiGatewayAuthorizer";
+import { Duration } from "@aws-cdk/core";
 
 export class RecipeBankStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -19,7 +21,7 @@ export class RecipeBankStack extends cdk.Stack {
       userPoolClientName: "RecipeBankApp",
     });
 
-    const table = new dynamodb.Table(this, "RecipesTable", {
+    const recipesTable = new dynamodb.Table(this, "RecipesTable", {
       tableName: "recipes",
       partitionKey: {
         name: "uuid",
@@ -27,11 +29,21 @@ export class RecipeBankStack extends cdk.Stack {
       },
     });
 
+    const rawImagesBucket = new s3.Bucket(this, "ImagesBucket", {
+      bucketName: `recipe-bank-raw-image-uploads`,
+    });
+
     const addRecipeHandler = new lambda.NodejsFunction(this, "AddRecipeHandler");
-    table.grantWriteData(addRecipeHandler);
+    recipesTable.grantWriteData(addRecipeHandler);
 
     const listRecipesHandler = new lambda.NodejsFunction(this, "ListRecipesHandler");
-    table.grantReadData(listRecipesHandler);
+    recipesTable.grantReadData(listRecipesHandler);
+
+    const getPreSignedUploadUrlHandler = new lambda.NodejsFunction(
+      this,
+      "GetPreSignedUploadUrlHandler"
+    );
+    rawImagesBucket.grantWrite(getPreSignedUploadUrlHandler);
 
     const api = new apigateway.RestApi(this, "Api", {
       restApiName: "RecipeBankApi",
@@ -54,5 +66,18 @@ export class RecipeBankStack extends cdk.Stack {
 
     recipesResource.addMethod("POST", new apigateway.LambdaIntegration(addRecipeHandler));
     recipesResource.addMethod("GET", new apigateway.LambdaIntegration(listRecipesHandler));
+
+    const actionsResource = api.root.addResource("actions", {
+      defaultMethodOptions: {
+        authorizer: cognitoAuthorizer,
+        authorizationType: AuthorizationType.COGNITO,
+      },
+    });
+
+    const getPreSignedUploadUrlResource = actionsResource.addResource("get-pre-signed-upload-url");
+    getPreSignedUploadUrlResource.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(getPreSignedUploadUrlHandler)
+    );
   }
 }
