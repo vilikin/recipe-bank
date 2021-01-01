@@ -8,21 +8,22 @@ import { removeUndefinedAttributes } from "./utils/dynamodb-utils";
 const DynamoDB = new AWS.DynamoDB();
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const parsedBody = JSON.parse(event.body ?? "{}");
-  const addRecipePayload: AddRecipePayload = AddRecipePayloadCodec.unsafeDecode(parsedBody);
   const username = event.requestContext?.authorizer?.claims?.["cognito:username"];
 
   if (!username) {
     throw new Error("Username not found from request context");
   }
 
+  const parsedBody = JSON.parse(event.body ?? "{}");
+  const { name, url, imageUuid } = AddRecipePayloadCodec.unsafeDecode(parsedBody);
   const uuid = uuidv4();
 
   const itemPayload: PutItemInputAttributeMap = {
     uuid: { S: uuid },
-    name: { S: addRecipePayload.name },
-    url: { S: addRecipePayload.url },
+    name: { S: name },
+    url: { S: url },
     username: { S: username },
+    imageUuid: { S: imageUuid },
   };
 
   await DynamoDB.putItem({
@@ -33,10 +34,11 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
   return {
     statusCode: 200,
     body: JSON.stringify({
-      uuid: uuid,
-      name: addRecipePayload.name,
-      url: addRecipePayload.url,
+      uuid,
+      name,
+      url,
       username,
+      imageUuid,
     }),
   };
 }
