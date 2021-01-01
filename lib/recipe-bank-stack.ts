@@ -8,6 +8,8 @@ import * as cognito from "@aws-cdk/aws-cognito";
 import * as s3 from "@aws-cdk/aws-s3";
 import { CognitoApiGatewayAuthorizer } from "./utils/CognitoApiGatewayAuthorizer";
 import { Duration } from "@aws-cdk/core";
+import { S3EventSource } from "@aws-cdk/aws-lambda-event-sources";
+import { BUCKET_FOR_RESIZED_IMAGES, BUCKET_FOR_RAW_UPLOADED_IMAGES } from "./constants";
 
 export class RecipeBankStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -30,7 +32,11 @@ export class RecipeBankStack extends cdk.Stack {
     });
 
     const rawImagesBucket = new s3.Bucket(this, "ImagesBucket", {
-      bucketName: `recipe-bank-raw-image-uploads`,
+      bucketName: BUCKET_FOR_RAW_UPLOADED_IMAGES,
+    });
+
+    const resizedImagesBucket = new s3.Bucket(this, "ResizedImagesBucket", {
+      bucketName: BUCKET_FOR_RESIZED_IMAGES,
     });
 
     const addRecipeHandler = new lambda.NodejsFunction(this, "AddRecipeHandler");
@@ -43,7 +49,30 @@ export class RecipeBankStack extends cdk.Stack {
       this,
       "GetPreSignedUploadUrlHandler"
     );
+
     rawImagesBucket.grantWrite(getPreSignedUploadUrlHandler);
+
+    const processUploadedImagesHandler = new lambda.NodejsFunction(
+      this,
+      "ProcessUploadedImagesHandler",
+      {
+        memorySize: 512,
+        timeout: Duration.minutes(1),
+        bundling: {
+          nodeModules: ["sharp"],
+        },
+      }
+    );
+
+    processUploadedImagesHandler.addEventSource(
+      new S3EventSource(rawImagesBucket, {
+        events: [s3.EventType.OBJECT_CREATED],
+      })
+    );
+
+    rawImagesBucket.grantDelete(processUploadedImagesHandler);
+    rawImagesBucket.grantRead(processUploadedImagesHandler);
+    resizedImagesBucket.grantPut(processUploadedImagesHandler);
 
     const api = new apigateway.RestApi(this, "Api", {
       restApiName: "RecipeBankApi",
