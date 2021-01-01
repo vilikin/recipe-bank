@@ -44,6 +44,7 @@ export class RecipeBankStack extends cdk.Stack {
 
     const listRecipesHandler = new lambda.NodejsFunction(this, "ListRecipesHandler");
     recipesTable.grantReadData(listRecipesHandler);
+    resizedImagesBucket.grantRead(listRecipesHandler);
 
     const getPreSignedUploadUrlHandler = new lambda.NodejsFunction(
       this,

@@ -2,24 +2,9 @@ import { S3CreateEvent, S3EventRecord } from "aws-lambda";
 import sharp from "sharp";
 import * as AWS from "aws-sdk";
 import { BUCKET_FOR_RESIZED_IMAGES, BUCKET_FOR_RAW_UPLOADED_IMAGES } from "./constants";
+import { ResizeSpec, resizeSpecs, stringifySize } from "./resizeSpecs";
 
 const S3 = new AWS.S3();
-
-interface ResizeSpec {
-  width: number;
-  height: number;
-}
-
-const resizeSpecs: ResizeSpec[] = [
-  {
-    width: 500,
-    height: 500,
-  },
-  {
-    width: 1000,
-    height: 1000,
-  },
-];
 
 export async function handler(event: S3CreateEvent): Promise<void> {
   await Promise.all(event.Records.map(processRecord));
@@ -109,8 +94,4 @@ async function deleteOriginalImageFromS3(record: S3EventRecord): Promise<void> {
   }).promise();
 
   console.log(`Successfully deleted raw image ${key}`);
-}
-
-function stringifySize(resizeSpec: ResizeSpec): string {
-  return `${resizeSpec.width}x${resizeSpec.height}`;
 }
