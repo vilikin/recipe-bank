@@ -5,9 +5,17 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    container:
+      image: docker
+    services:
+      dind:
+        image: docker:dind
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Run deploy.sh script
-        uses: ./.github/actions/deploy-action
+      - name: Install tools
+        run: apk add --update bash nodejs npm jq
+
+      - name: Deploy
+        run: bash deploy.sh
