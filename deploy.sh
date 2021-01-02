@@ -1,6 +1,7 @@
 mkdir ./ui/build # As the dir is referenced in infra project, it needs to exist already here
 
 cd infra || exit 1
+npm install
 npm run cdk deploy RecipeBankInfra -- --outputs-file stack-outputs.json --require-approval never || exit 1
 
 REACT_APP_API_BASE_URL=$(jq .RecipeBankInfra.ApiBaseUrl stack-outputs.json -r)
