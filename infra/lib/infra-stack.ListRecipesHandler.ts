@@ -56,6 +56,9 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
   return {
     statusCode: 200,
     body: JSON.stringify(recipesWithImages),
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+    },
   };
 }
 

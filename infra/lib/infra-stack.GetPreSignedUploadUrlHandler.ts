@@ -35,5 +35,8 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       uuid: uuid,
       signedUrl,
     }),
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+    },
   };
 }

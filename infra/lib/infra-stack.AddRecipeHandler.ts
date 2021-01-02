@@ -40,5 +40,8 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       username,
       imageUuid,
     }),
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+    },
   };
 }

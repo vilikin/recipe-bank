@@ -3,17 +3,20 @@ import logo from "./logo.svg";
 import "./App.css";
 import Amplify from "aws-amplify";
 import { AmplifySignOut, withAuthenticator } from "@aws-amplify/ui-react";
+import { listRecipes } from "./utils/api";
 
 Amplify.configure({
   Auth: {
-    region: "eu-west-1",
-    userPoolId: "eu-west-1_Uf5yzuFsm",
-    userPoolWebClientId: "5hifnhh26nphmm5l2ej38b2fit",
+    region: process.env.REACT_APP_AWS_DEFAULT_REGION,
+    userPoolId: process.env.REACT_APP_COGNITO_USER_POOL_ID,
+    userPoolWebClientId: process.env.REACT_APP_COGNITO_USER_POOL_CLIENT_ID,
     mandatorySignIn: true
   }
 });
 
 function App() {
+  listRecipes().then(console.log);
+
   return (
     <div className="App">
       <header className="App-header">

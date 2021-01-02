@@ -1,22 +1,32 @@
 import * as cdk from "@aws-cdk/core";
+import {CfnOutput, Duration} from "@aws-cdk/core";
 import * as dynamodb from "@aws-cdk/aws-dynamodb";
-import { AttributeType } from "@aws-cdk/aws-dynamodb";
+import {AttributeType} from "@aws-cdk/aws-dynamodb";
 import * as lambda from "@aws-cdk/aws-lambda-nodejs";
 import * as apigateway from "@aws-cdk/aws-apigateway";
-import { AuthorizationType } from "@aws-cdk/aws-apigateway";
+import {AuthorizationType, Cors} from "@aws-cdk/aws-apigateway";
 import * as cognito from "@aws-cdk/aws-cognito";
+import {AccountRecovery} from "@aws-cdk/aws-cognito";
 import * as s3 from "@aws-cdk/aws-s3";
-import { CognitoApiGatewayAuthorizer } from "./utils/CognitoApiGatewayAuthorizer";
-import { Duration } from "@aws-cdk/core";
-import { S3EventSource } from "@aws-cdk/aws-lambda-event-sources";
-import { BUCKET_FOR_RESIZED_IMAGES, BUCKET_FOR_RAW_UPLOADED_IMAGES } from "./constants";
+import {CognitoApiGatewayAuthorizer} from "./utils/CognitoApiGatewayAuthorizer";
+import {S3EventSource} from "@aws-cdk/aws-lambda-event-sources";
+import {BUCKET_FOR_RAW_UPLOADED_IMAGES, BUCKET_FOR_RESIZED_IMAGES} from "./constants";
 
-export class RecipeBankStack extends cdk.Stack {
+export class InfraStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     const userPool = new cognito.UserPool(this, "UserPool", {
       userPoolName: "RecipeBankUsers",
+      selfSignUpEnabled: true,
+      passwordPolicy: {
+        requireSymbols: false
+      },
+      accountRecovery: AccountRecovery.EMAIL_ONLY,
+      autoVerify: {
+        email: true,
+        phone: false
+      }
     });
 
     const userPoolClient = userPool.addClient("UserPoolClient", {
@@ -77,6 +87,9 @@ export class RecipeBankStack extends cdk.Stack {
 
     const api = new apigateway.RestApi(this, "Api", {
       restApiName: "RecipeBankApi",
+      defaultCorsPreflightOptions: {
+        allowOrigins: Cors.ALL_ORIGINS,
+      },
     });
 
     const cognitoAuthorizer = new CognitoApiGatewayAuthorizer(this, "CognitoAuthorizer", {
@@ -87,27 +100,42 @@ export class RecipeBankStack extends cdk.Stack {
       restApiId: api.restApiId,
     });
 
-    const recipesResource = api.root.addResource("recipes", {
-      defaultMethodOptions: {
-        authorizer: cognitoAuthorizer,
-        authorizationType: AuthorizationType.COGNITO,
-      },
+    const authorizerProps = {
+      authorizer: cognitoAuthorizer,
+      authorizationType: AuthorizationType.COGNITO,
+    };
+
+    const recipesResource = api.root.addResource("recipes");
+
+    recipesResource.addMethod("POST", new apigateway.LambdaIntegration(addRecipeHandler), {
+      ...authorizerProps,
     });
 
-    recipesResource.addMethod("POST", new apigateway.LambdaIntegration(addRecipeHandler));
-    recipesResource.addMethod("GET", new apigateway.LambdaIntegration(listRecipesHandler));
-
-    const actionsResource = api.root.addResource("actions", {
-      defaultMethodOptions: {
-        authorizer: cognitoAuthorizer,
-        authorizationType: AuthorizationType.COGNITO,
-      },
+    recipesResource.addMethod("GET", new apigateway.LambdaIntegration(listRecipesHandler), {
+      ...authorizerProps,
     });
 
+    const actionsResource = api.root.addResource("actions");
     const getPreSignedUploadUrlResource = actionsResource.addResource("get-pre-signed-upload-url");
+
     getPreSignedUploadUrlResource.addMethod(
       "POST",
-      new apigateway.LambdaIntegration(getPreSignedUploadUrlHandler)
+      new apigateway.LambdaIntegration(getPreSignedUploadUrlHandler),
+      {
+        ...authorizerProps,
+      }
     );
+
+    new CfnOutput(this, "CognitoUserPoolId", {
+      value: userPool.userPoolId,
+    });
+
+    new CfnOutput(this, "CognitoUserPoolClientId", {
+      value: userPoolClient.userPoolClientId,
+    });
+
+    new CfnOutput(this, "ApiBaseUrl", {
+      value: api.deploymentStage.urlForPath(),
+    });
   }
 }
