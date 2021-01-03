@@ -17,8 +17,8 @@ export REACT_APP_AWS_DEFAULT_REGION
 rm stack-outputs.json
 
 cd ../ui || exit 1
-yarn install || exit 1
-yarn run build || exit 1
+npm install || exit 1
+npm run build || exit 1
 
 cd ../infra || exit 1
 npm run cdk deploy RecipeBankStaticWebSite -- --require-approval never || exit 1
