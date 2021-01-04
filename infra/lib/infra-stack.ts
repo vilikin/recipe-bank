@@ -1,16 +1,17 @@
 import * as cdk from "@aws-cdk/core";
-import {CfnOutput, Duration} from "@aws-cdk/core";
+import { CfnOutput, Duration } from "@aws-cdk/core";
 import * as dynamodb from "@aws-cdk/aws-dynamodb";
-import {AttributeType} from "@aws-cdk/aws-dynamodb";
+import { AttributeType } from "@aws-cdk/aws-dynamodb";
 import * as lambda from "@aws-cdk/aws-lambda-nodejs";
 import * as apigateway from "@aws-cdk/aws-apigateway";
-import {AuthorizationType, Cors} from "@aws-cdk/aws-apigateway";
+import { AuthorizationType, Cors } from "@aws-cdk/aws-apigateway";
 import * as cognito from "@aws-cdk/aws-cognito";
-import {AccountRecovery} from "@aws-cdk/aws-cognito";
+import { AccountRecovery } from "@aws-cdk/aws-cognito";
 import * as s3 from "@aws-cdk/aws-s3";
-import {CognitoApiGatewayAuthorizer} from "./utils/CognitoApiGatewayAuthorizer";
-import {S3EventSource} from "@aws-cdk/aws-lambda-event-sources";
-import {BUCKET_FOR_RAW_UPLOADED_IMAGES, BUCKET_FOR_RESIZED_IMAGES} from "./constants";
+import { HttpMethods } from "@aws-cdk/aws-s3";
+import { CognitoApiGatewayAuthorizer } from "./utils/CognitoApiGatewayAuthorizer";
+import { S3EventSource } from "@aws-cdk/aws-lambda-event-sources";
+import { BUCKET_FOR_RAW_UPLOADED_IMAGES, BUCKET_FOR_RESIZED_IMAGES } from "./constants";
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -20,13 +21,13 @@ export class InfraStack extends cdk.Stack {
       userPoolName: "RecipeBankUsers",
       selfSignUpEnabled: true,
       passwordPolicy: {
-        requireSymbols: false
+        requireSymbols: false,
       },
       accountRecovery: AccountRecovery.EMAIL_ONLY,
       autoVerify: {
         email: true,
-        phone: false
-      }
+        phone: false,
+      },
     });
 
     const userPoolClient = userPool.addClient("UserPoolClient", {
@@ -43,10 +44,24 @@ export class InfraStack extends cdk.Stack {
 
     const rawImagesBucket = new s3.Bucket(this, "ImagesBucket", {
       bucketName: BUCKET_FOR_RAW_UPLOADED_IMAGES,
+      cors: [
+        {
+          allowedOrigins: ["*"],
+          allowedHeaders: ["*"],
+          allowedMethods: [HttpMethods.PUT],
+        },
+      ],
     });
 
     const resizedImagesBucket = new s3.Bucket(this, "ResizedImagesBucket", {
       bucketName: BUCKET_FOR_RESIZED_IMAGES,
+      cors: [
+        {
+          allowedOrigins: ["*"],
+          allowedHeaders: ["*"],
+          allowedMethods: [HttpMethods.GET],
+        },
+      ],
     });
 
     const addRecipeHandler = new lambda.NodejsFunction(this, "AddRecipeHandler");

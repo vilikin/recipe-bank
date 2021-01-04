@@ -1,9 +1,9 @@
-import React from "react";
+import React, {ChangeEvent, useCallback} from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import Amplify from "aws-amplify";
 import { AmplifySignOut, withAuthenticator } from "@aws-amplify/ui-react";
-import { listRecipes } from "./utils/api";
+import {listRecipes, uploadImage} from "./utils/api";
 
 Amplify.configure({
   Auth: {
@@ -17,6 +17,14 @@ Amplify.configure({
 function App() {
   listRecipes().then(console.log);
 
+  const onFileChange = useCallback(async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+
+    if (file) {
+      await uploadImage(file);
+    }
+  }, []);
+
   return (
     <div className="App">
       <header className="App-header">
@@ -24,6 +32,7 @@ function App() {
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
         </p>
+        <input type="file" accept="image/*" capture="camera" onChange={onFileChange}/>
         <a
           className="App-link"
           href="https://reactjs.org"
