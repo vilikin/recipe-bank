@@ -1,17 +1,10 @@
 import { Auth } from "aws-amplify";
+import {
+  AddRecipePayload,
+  Recipe,
+} from "../../../infra/src/lambdas/common/codecs";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-
-interface Image {
-  size: string;
-  url: string;
-}
-
-interface Recipe {
-  name: string;
-  url?: string;
-  images?: Image[];
-}
 
 interface GetPreSignedUploadUrlResponse {
   uuid: string;
@@ -35,22 +28,42 @@ export async function listRecipes(): Promise<Recipe[]> {
   return await fetch(request).then((r) => r.json());
 }
 
+export async function addRecipe(
+  addRecipePayload: AddRecipePayload
+): Promise<void> {
+  const token = await getIdToken();
+
+  const request = new Request(`${API_BASE_URL}recipes`, {
+    method: "POST",
+    headers: new Headers({
+      Authorization: `Bearer ${token}`,
+    }),
+    body: JSON.stringify(addRecipePayload),
+  });
+
+  await fetch(request);
+}
+
 export async function uploadImage(file: File): Promise<string> {
   const token = await getIdToken();
 
   console.log("Retrieving pre signed upload url for image");
-  const getPreSignedUploadUrlRequest = new Request(`${API_BASE_URL}actions/get-pre-signed-upload-url`, {
-    method: "POST",
-    body: JSON.stringify({
-      contentType: file.type
-    }),
-    headers: new Headers({
-      Authorization: `Bearer ${token}`,
-    }),
-  });
+  const getPreSignedUploadUrlRequest = new Request(
+    `${API_BASE_URL}actions/get-pre-signed-upload-url`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        contentType: file.type,
+      }),
+      headers: new Headers({
+        Authorization: `Bearer ${token}`,
+      }),
+    }
+  );
 
-  const { uuid, signedUrl }: GetPreSignedUploadUrlResponse = await fetch(getPreSignedUploadUrlRequest)
-    .then((r) => r.json());
+  const { uuid, signedUrl }: GetPreSignedUploadUrlResponse = await fetch(
+    getPreSignedUploadUrlRequest
+  ).then((r) => r.json());
 
   console.log(`Initiating upload for image uuid ${uuid}`);
 
@@ -59,7 +72,7 @@ export async function uploadImage(file: File): Promise<string> {
     headers: new Headers({
       "Content-Type": file.type,
     }),
-    body: file
+    body: file,
   });
 
   await fetch(uploadRequest);

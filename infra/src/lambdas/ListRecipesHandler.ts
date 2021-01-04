@@ -33,7 +33,10 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
   const recipesWithImages = await Promise.all(
     recipes.map(async (recipe) => {
       if (!recipe.imageUuid) {
-        return recipe;
+        return {
+          ...recipe,
+          images: [],
+        };
       }
 
       const images = await Promise.all(
