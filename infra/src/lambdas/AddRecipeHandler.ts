@@ -1,9 +1,9 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import * as AWS from "aws-sdk";
-import { AddRecipePayload, AddRecipePayloadCodec } from "./codecs";
+import { AddRecipePayloadCodec } from "./common/codecs";
 import { v4 as uuidv4 } from "uuid";
 import { PutItemInputAttributeMap } from "aws-sdk/clients/dynamodb";
-import { removeUndefinedAttributes } from "./utils/dynamodb-utils";
+import { removeUndefinedAttributes } from "../utils/dynamodb-utils";
 
 const DynamoDB = new AWS.DynamoDB();
 

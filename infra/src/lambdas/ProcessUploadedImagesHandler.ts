@@ -1,8 +1,8 @@
 import { S3CreateEvent, S3EventRecord } from "aws-lambda";
 import sharp from "sharp";
 import * as AWS from "aws-sdk";
-import { BUCKET_FOR_RESIZED_IMAGES, BUCKET_FOR_RAW_UPLOADED_IMAGES } from "./constants";
-import { ResizeSpec, resizeSpecs, stringifySize } from "./resizeSpecs";
+import { BUCKET_FOR_RESIZED_IMAGES, BUCKET_FOR_RAW_UPLOADED_IMAGES } from "../constants";
+import { ResizeSpec, resizeSpecs, stringifySize } from "./common/resizeSpecs";
 
 const S3 = new AWS.S3();
 

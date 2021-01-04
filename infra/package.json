@@ -1,9 +1,6 @@
 {
   "name": "recipe-bank",
   "version": "0.1.0",
-  "bin": {
-    "recipe-bank": "infra/bin/recipe-bank.js"
-  },
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",

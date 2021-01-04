@@ -9,9 +9,9 @@ import * as cognito from "@aws-cdk/aws-cognito";
 import { AccountRecovery } from "@aws-cdk/aws-cognito";
 import * as s3 from "@aws-cdk/aws-s3";
 import { HttpMethods } from "@aws-cdk/aws-s3";
-import { CognitoApiGatewayAuthorizer } from "./utils/CognitoApiGatewayAuthorizer";
+import { CognitoApiGatewayAuthorizer } from "../utils/CognitoApiGatewayAuthorizer";
 import { S3EventSource } from "@aws-cdk/aws-lambda-event-sources";
-import { BUCKET_FOR_RAW_UPLOADED_IMAGES, BUCKET_FOR_RESIZED_IMAGES } from "./constants";
+import { BUCKET_FOR_RAW_UPLOADED_IMAGES, BUCKET_FOR_RESIZED_IMAGES } from "../constants";
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -64,16 +64,23 @@ export class InfraStack extends cdk.Stack {
       ],
     });
 
-    const addRecipeHandler = new lambda.NodejsFunction(this, "AddRecipeHandler");
+    const addRecipeHandler = new lambda.NodejsFunction(this, "AddRecipeHandler", {
+      entry: "./src/lambdas/AddRecipeHandler.ts",
+    });
     recipesTable.grantWriteData(addRecipeHandler);
 
-    const listRecipesHandler = new lambda.NodejsFunction(this, "ListRecipesHandler");
+    const listRecipesHandler = new lambda.NodejsFunction(this, "ListRecipesHandler", {
+      entry: "./src/lambdas/ListRecipesHandler.ts",
+    });
     recipesTable.grantReadData(listRecipesHandler);
     resizedImagesBucket.grantRead(listRecipesHandler);
 
     const getPreSignedUploadUrlHandler = new lambda.NodejsFunction(
       this,
-      "GetPreSignedUploadUrlHandler"
+      "GetPreSignedUploadUrlHandler",
+      {
+        entry: "./src/lambdas/GetPreSignedUploadUrlHandler.ts",
+      }
     );
 
     rawImagesBucket.grantWrite(getPreSignedUploadUrlHandler);
@@ -82,6 +89,7 @@ export class InfraStack extends cdk.Stack {
       this,
       "ProcessUploadedImagesHandler",
       {
+        entry: "./src/lambdas/ProcessUploadedImagesHandler.ts",
         memorySize: 512,
         timeout: Duration.minutes(1),
         bundling: {

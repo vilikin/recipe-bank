@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import * as AWS from "aws-sdk";
-import { BUCKET_FOR_RESIZED_IMAGES } from "./constants";
-import { ResizeSpec, resizeSpecs, stringifySize } from "./resizeSpecs";
+import { BUCKET_FOR_RESIZED_IMAGES } from "../constants";
+import { ResizeSpec, resizeSpecs, stringifySize } from "./common/resizeSpecs";
 
 const DynamoDB = new AWS.DynamoDB();
 const S3 = new AWS.S3();

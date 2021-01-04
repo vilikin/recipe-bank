@@ -2,8 +2,8 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import * as AWS from "aws-sdk";
 import { v4 as uuidv4 } from "uuid";
 import { extension } from "mime-types";
-import { GetPreSignedUploadUrlPayloadCodec } from "./codecs";
-import { BUCKET_FOR_RAW_UPLOADED_IMAGES } from "./constants";
+import { GetPreSignedUploadUrlPayloadCodec } from "./common/codecs";
+import { BUCKET_FOR_RAW_UPLOADED_IMAGES } from "../constants";
 
 const S3 = new AWS.S3();
 
