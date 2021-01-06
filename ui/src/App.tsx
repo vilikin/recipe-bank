@@ -1,6 +1,17 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import logo from "./logo.svg";
+import "./App.css";
+import Amplify from "aws-amplify";
+import { AmplifySignOut, withAuthenticator } from "@aws-amplify/ui-react";
+
+Amplify.configure({
+  Auth: {
+    region: "eu-west-1",
+    userPoolId: "eu-west-1_Uf5yzuFsm",
+    userPoolWebClientId: "5hifnhh26nphmm5l2ej38b2fit",
+    mandatorySignIn: true
+  }
+});
 
 function App() {
   return (
@@ -19,8 +30,9 @@ function App() {
           Learn React
         </a>
       </header>
+      <AmplifySignOut />
     </div>
   );
 }
 
-export default App;
+export default withAuthenticator(App);
